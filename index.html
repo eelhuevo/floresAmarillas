@@ -59,7 +59,6 @@
             pointer-events: none;
             transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             padding: 1.5rem;
-            contain: layout style;
         }
         .section.active {
             opacity: 1;
@@ -297,7 +296,6 @@
             transform-origin: bottom center;
             z-index: 20;
             --fl-speed: 0.8s;
-            will-change: transform;
         }
 
         /* Animations */
@@ -311,9 +309,9 @@
         @keyframes light-ans {
             0% { opacity: 0; transform: translateY(0vmin); }
             25% { opacity: 1; transform: translateY(-5vmin) translateX(-2vmin); }
-            50% { opacity: 1; transform: translateY(-15vmin) translateX(2vmin); }
-            75% { transform: translateY(-20vmin) translateX(-2vmin); }
-            100% { transform: translateY(-30vmin); opacity: 0; }
+            50% { opacity: 1; transform: translateY(-15vmin) translateX(2vmin); filter: blur(0.2vmin); }
+            75% { transform: translateY(-20vmin) translateX(-2vmin); filter: blur(0.2vmin); }
+            100% { transform: translateY(-30vmin); opacity: 0; filter: blur(1vmin); }
         }
 
         .flower .flower__line__leaf--1 { animation: blooming-leaf-right var(--fl-speed) 1.6s backwards; }
@@ -329,7 +327,7 @@
             content: ""; position: absolute; left: 0; top: 0;
             transform: translate(-50%, -100%);
             width: 8vmin; height: 8vmin;
-            background-color: #1aaa15;
+            background-color: #1aaa15; filter: blur(10vmin);
         }
         .flower__leaf {
             position: absolute; bottom: 0; left: 50%;
@@ -416,10 +414,7 @@
             .card-ornament { font-size: 1.1rem; margin-bottom: 0.4rem; }
 
             .nav-arrows { bottom: 1.2rem; gap: 0.5rem; }
-            .nav-arrow { 
-                width: 44px; height: 44px; min-width: 44px; min-height: 44px; font-size: 1.1rem;
-                backdrop-filter: none; -webkit-backdrop-filter: none;
-            }
+            .nav-arrow { width: 44px; height: 44px; min-width: 44px; min-height: 44px; font-size: 1.1rem; }
             .section-indicators { right: 0.5rem; gap: 0.4rem; }
             .indicator { width: 7px; height: 7px; }
             
@@ -506,8 +501,6 @@
     (function generateFlowers() {
         const container = document.getElementById('flowersContainer');
         if (!container) return;
-        const isMobile = window.innerWidth < 600;
-        const sideCount = isMobile ? 8 : 21;
 
         function createFlower(leftPercent, isMid) {
             const flower = document.createElement('div');
@@ -541,16 +534,16 @@
             return flower;
         }
 
-        // Lado Izquierdo
-        for (let i = 0; i < sideCount; i++) {
-            const pos = -5 + (i * (35 / sideCount));
+        // Lado Izquierdo (21 flores: -5% a 30%)
+        for (let i = 0; i < 21; i++) {
+            const pos = -5 + (i * 1.75);
             const isMid = pos > 12;
             container.appendChild(createFlower(pos, isMid));
         }
 
-        // Lado Derecho
-        for (let i = 0; i < sideCount; i++) {
-            const pos = 70 + (i * (35 / sideCount));
+        // Lado Derecho (21 flores: 70% a 105%)
+        for (let i = 0; i < 21; i++) {
+            const pos = 70 + (i * 1.75);
             const isMid = pos < 88;
             container.appendChild(createFlower(pos, isMid));
         }
@@ -626,12 +619,14 @@
             ctx.ellipse(0, 0, this.size, this.size / 1.8, 0, 0, Math.PI * 2);
             ctx.fillStyle = this.color;
             ctx.globalAlpha = this.opacity;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = "rgba(251, 191, 36, 0.8)";
             ctx.fill();
             ctx.restore();
         }
     }
 
-    for (let i = 0; i < 20; i++) pArr.push(new Petal());
+    for (let i = 0; i < 60; i++) pArr.push(new Petal());
 
     function animP() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -644,7 +639,7 @@
     (function() {
         const container = document.getElementById('textTrailContainer');
         if (!container || typeof THREE === 'undefined') return;
-        const IDEAL = window.innerWidth < 600 ? 512 : 1024, PF = 5, TT = 0.066;
+        const IDEAL = 1024, PF = 5, TT = 0.066;
         const SIMPLEX = `
             vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
             vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -685,7 +680,7 @@
         let w=container.clientWidth||1, h=container.clientHeight||1;
         const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
         renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
-        renderer.setPixelRatio(Math.min(devicePixelRatio||1, window.innerWidth < 600 ? 1 : 1.5));
+        renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
         const cvs=renderer.domElement;cvs.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%";container.appendChild(cvs);
         const cam=new THREE.OrthographicCamera(-1,1,1,-1,0.1,10);cam.position.set(0,0,1);
         const tOpts={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false};
